@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#D4C5B0" />
+<title>鞠式养成 · 工作台</title>
+<style>
+  :root{
+    --bg:#F2EFEC;
+    --primary:#D4C5B0; --accent:#C4B5A0;
+    --ink:#2C2C2C; --text:#3A3A3A; --gray:#AAAAAA;
+    --line:rgba(200,195,190,0.25);
+    --glass-bg:rgba(255,255,255,0.38);
+    --glass-border:rgba(200,195,190,0.15);
+    --glass-solid:rgba(255,255,255,0.55);
+    --glass-flat:rgba(255,255,255,0.70);
+    --blur:16px; --radius:20px;
+    --shadow:0 4px 20px rgba(0,0,0,0.05);
+    --halo1:rgba(212,197,176,0.08); --halo2:rgba(196,181,160,0.06);
+    --font-zh:"PingFang SC","Source Han Sans SC","Noto Sans SC Light",-apple-system,"Microsoft YaHei",sans-serif;
+    --font-en:"Didot","Cormorant Garamond",Georgia,"Times New Roman",serif;
+    --base-size:15px; --title-scale:1.2;
+  }
+  [data-theme="warm"]{
+    --bg:#FBF6F0; --primary:#E8C4C4; --accent:#D4A8B0;
+    --glass-bg:rgba(255,255,255,0.55); --glass-border:rgba(232,196,196,0.20);
+    --glass-solid:rgba(255,255,255,0.68); --glass-flat:rgba(255,255,255,0.78);
+    --halo1:rgba(232,196,196,0.10); --halo2:rgba(212,180,190,0.08);
+    --shadow:0 4px 20px rgba(180,150,160,0.08);
+  }
+  [data-theme="minimal"]{
+    --bg:#FFFFFF; --primary:#2C2C2C; --accent:#888888; --ink:#2A2A2A; --text:#2A2A2A; --gray:#BBBBBB;
+    --glass-bg:rgba(255,255,255,0.70); --glass-border:rgba(180,180,180,0.25); --glass-solid:rgba(255,255,255,0.85);
+    --glass-flat:rgba(255,255,255,0.92); --blur:0px; --halo1:transparent; --halo2:transparent;
+    --shadow:0 1px 6px rgba(0,0,0,0.04);
+  }
+  [data-theme="dark"]{
+    --bg:#1F1F1F; --primary:#D4C5B0; --accent:#C4B5A0; --ink:#F2EFEC; --text:#E8E4DE; --gray:#9a9a9a;
+    --line:rgba(255,255,255,0.12); --glass-bg:rgba(60,60,60,0.40); --glass-border:rgba(255,255,255,0.10);
+    --glass-solid:rgba(60,60,60,0.55); --glass-flat:rgba(40,40,40,0.70);
+    --halo1:rgba(212,197,176,0.10); --halo2:rgba(196,181,160,0.08); --shadow:0 4px 20px rgba(0,0,0,0.30);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--font-zh); background:var(--bg); color:var(--text);
+    max-width:480px; margin:0 auto; min-height:100vh; font-size:var(--fs-size); line-height:1.65;
+    -webkit-font-smoothing:antialiased; transition:background .4s ease,color .4s ease;
+  }
+  .en,.boot-quote .en,.home-quote .en,.feed-cat{font-family:var(--font-en);}
+  .app{max-width:480px;margin:0 auto;min-height:100vh;position:relative;z-index:1;background:transparent;}
+  #bg-layer{position:fixed;inset:0;z-index:-1;background-size:cover;background-position:center;background-attachment:fixed;display:none;}
+
+  .halos{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+  .halo{position:absolute;width:62vw;height:62vw;border-radius:50%;filter:blur(100px);opacity:1;animation:floaty 15s ease-in-out infinite;}
+  .halo.h1{top:-18%;left:-12%;background:var(--halo1);}
+  .halo.h2{bottom:-18%;right:-12%;background:var(--halo2);animation-delay:-7.5s;}
+  @keyframes floaty{0%,100%{transform:translate(0,0)}50%{transform:translate(20px,20px)}}
+
+  .topbar{
+    position:sticky;top:0;z-index:30;padding:14px 16px 12px;display:flex;align-items:center;gap:10px;color:var(--ink);
+    background:var(--glass-bg); -webkit-backdrop-filter:blur(var(--blur)) saturate(1.25); backdrop-filter:blur(var(--blur)) saturate(1.25);
+    border-bottom:1px solid var(--glass-border); box-shadow:var(--shadow);
+  }
+  .topbar .menu-btn{font-size:22px;background:none;border:none;cursor:pointer;line-height:1;}
+  .topbar .title{font-weight:600;font-size:18px;letter-spacing:.5px;flex:1;}
+  .topbar .title small{display:block;font-weight:400;font-size:11px;color:var(--gray);font-family:var(--font-en);}
+  .topbar .clock{font-variant-numeric:tabular-nums;font-size:13px;color:var(--text);text-align:right;font-family:var(--font-en);}
+  .topbar .clock b{display:block;font-size:16px;font-weight:700;}
+
+  .drawer-mask{position:fixed;inset:0;background:rgba(44,44,44,.40);z-index:60;display:none;}
+  .drawer-mask.show{display:block;}
+  .drawer{
+    position:fixed;top:0;left:0;bottom:0;width:80%;max-width:340px;z-index:70;
+    background:var(--glass-bg); -webkit-backdrop-filter:blur(calc(var(--blur) + 6px)) saturate(1.3); backdrop-filter:blur(calc(var(--blur) + 6px)) saturate(1.3);
+    border-right:1px solid var(--glass-border); box-shadow:var(--shadow);display:flex;flex-direction:column;
+    transform:translateX(-105%);transition:transform .30s ease;
+  }
+  .drawer.show{transform:translateX(0);}
+  .drawer-head{padding:26px 18px 18px;color:var(--ink);border-bottom:1px solid var(--glass-border);}
+  .drawer-head h2{margin:0;font-size:20px;font-weight:700;letter-spacing:1px;}
+  .drawer-head p{margin:6px 0 0;font-size:12px;color:var(--gray);font-family:var(--font-en);}
+  .drawer-list{flex:1;overflow:auto;padding:10px 0;}
+  .nav-item{display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:15px;color:var(--text);border-left:4px solid transparent;transition:background .2s;}
+  .nav-item:active{background:var(--glass-solid);}
+  .nav-item.active{border-left-color:var(--accent);background:var(--glass-solid);font-weight:600;}
+  .nav-item .ic{font-size:18px;width:24px;text-align:center;}
+  .drawer-foot{padding:12px 16px;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--glass-border);}
+  .drawer-foot button{width:100%;padding:12px;background:var(--glass-solid);border:1px solid var(--glass-border);border-radius:14px;color:var(--text);font-size:13px;cursor:pointer;}
+
+  .view{padding:14px 14px 40px;display:none;position:relative;z-index:1;}
+  .view.active{display:block;animation:pageIn .30s ease;}
+  @keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .boot-mask{position:fixed;inset:0;background:rgba(44,44,44,.50);z-index:90;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .boot-card{background:var(--glass-bg);-webkit-backdrop-filter:blur(calc(var(--blur) + 8px)) saturate(1.3);backdrop-filter:blur(calc(var(--blur) + 8px)) saturate(1.3);border:1px solid var(--glass-border);border-radius:24px;max-width:340px;width:100%;padding:24px 20px;text-align:center;box-shadow:var(--shadow);overflow:hidden;animation:fadeIn .6s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+  .boot-card .bg{width:100%;height:120px;border-radius:16px;background:linear-gradient(135deg,var(--primary),var(--accent));background-size:cover;background-position:center;margin-bottom:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;}
+  .boot-card h1{font-size:17px;margin:6px 0 14px;color:var(--ink);font-weight:600;}
+  .boot-quote{background:var(--glass-solid);border:1px solid var(--glass-border);border-radius:14px;padding:14px;margin-bottom:14px;}
+  .boot-quote .zh{font-size:14px;line-height:1.7;}
+  .boot-quote .en{font-size:11px;color:var(--gray);margin-top:6px;font-style:italic;}
+  .boot-card button{background:linear-gradient(135deg,var(--primary),var(--accent));border:none;color:#fff;padding:12px 22px;border-radius:24px;font-size:15px;font-weight:600;cursor:pointer;width:100%;}
+  .switch-q{background:none;border:none;color:var(--accent);font-size:12px;margin-top:8px;cursor:pointer;text-decoration:underline;}
+
+  .card{background:var(--glass-bg);-webkit-backdrop-filter:blur(var(--blur)) saturate(1.2);backdrop-filter:blur(var(--blur)) saturate(1.2);border:1px solid var(--glass-border);border-radius:var(--radius);padding:14px;margin-bottom:14px;box-shadow:var(--shadow);animation:rise .4s ease both;}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .card h3{margin:0 0 10px;font-size:calc(var(--fs-size) * var(--title-scale));display:flex;align-items:center;gap:6px;color:var(--ink);}
+  .card h3 .tag{margin-left:auto;font-size:11px;color:var(--gray);font-weight:400;}
+  .quote-bar{font-size:12px;color:var(--text);background:var(--glass-solid);border-left:3px solid var(--accent);padding:8px 10px;border-radius:8px;margin-bottom:12px;font-style:italic;}
+
+  .banner{position:relative;width:100%;height:120px;border-radius:var(--radius);background:linear-gradient(135deg,var(--primary),var(--accent));background-size:cover;background-position:center;margin-bottom:12px;cursor:pointer;display:flex;align-items:flex-end;justify-content:flex-start;color:#fff;font-size:11px;padding:8px;text-shadow:0 1px 3px rgba(0,0,0,.35);overflow:hidden;border:1px solid var(--glass-border);}
+  .banner::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(212,197,176,.22),rgba(196,181,160,.34));z-index:1;}
+  .banner .bcap{position:relative;z-index:2;}
+
+  .home-hero{position:relative;height:150px;border-radius:var(--radius);background:linear-gradient(135deg,var(--primary),var(--accent));background-size:cover;background-position:center;display:flex;flex-direction:column;justify-content:flex-end;padding:14px;color:#fff;margin-bottom:14px;cursor:pointer;box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--glass-border);animation:rise .4s ease both;}
+  .home-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(212,197,176,.18),rgba(196,181,160,.30));z-index:1;}
+  .home-hero>*{position:relative;z-index:2;}
+  .home-hero .date{font-size:13px;opacity:.96;}
+  .home-hero .dnum{font-size:26px;font-weight:800;letter-spacing:1px;}
+  .home-hero .sub{font-size:11px;opacity:.92;}
+  .home-hero .hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;transform-origin:center;transition:transform .05s;}
+  .cover-preview{position:relative;width:100%;height:200px;border-radius:14px;overflow:hidden;background:#222;touch-action:none;margin-bottom:6px;}
+  .cover-preview img{position:absolute;left:0;top:0;width:100%;height:100%;will-change:transform;user-select:none;-webkit-user-drag:none;}
+  .cover-modes{display:flex;gap:8px;margin:10px 0;}
+  .cover-modes button{flex:1;padding:9px;border:1px solid var(--glass-border);border-radius:10px;background:var(--glass-flat);font-size:13px;cursor:pointer;color:var(--text);}
+  .cover-modes button.active{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border-color:transparent;}
+  .cover-zoom{width:100%;}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+  .grid .cell{background:var(--glass-bg);-webkit-backdrop-filter:blur(var(--blur)) saturate(1.2);backdrop-filter:blur(var(--blur)) saturate(1.2);border:1px solid var(--glass-border);border-radius:var(--radius);padding:16px 6px;text-align:center;box-shadow:var(--shadow);cursor:pointer;animation:rise .4s ease both;}
+  .grid .cell:active{transform:scale(.97);transition:transform .15s;}
+  .grid .cell .ic{font-size:24px;display:block;}
+  .grid .cell .lb{font-size:11px;margin-top:6px;color:var(--text);display:block;}
+  .home-quote{background:var(--glass-bg);-webkit-backdrop-filter:blur(var(--blur)) saturate(1.2);backdrop-filter:blur(var(--blur)) saturate(1.2);border:1px solid var(--glass-border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:14px;text-align:center;animation:rise .4s ease both;}
+  .home-quote .zh{font-size:15px;font-weight:600;line-height:1.7;color:var(--ink);}
+  .home-quote .en{font-size:11px;color:var(--gray);font-style:italic;margin-top:8px;}
+  .home-quote button{margin-top:10px;background:none;border:1px solid var(--accent);border-radius:18px;padding:6px 14px;color:var(--text);font-size:12px;cursor:pointer;}
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .stats .st{background:var(--glass-solid);-webkit-backdrop-filter:blur(calc(var(--blur) - 4px));backdrop-filter:blur(calc(var(--blur) - 4px));border:1px solid var(--glass-border);border-radius:var(--radius);padding:14px;text-align:center;box-shadow:var(--shadow);animation:rise .4s ease both;}
+  .stats .st b{font-size:20px;color:var(--primary);display:block;font-family:var(--font-en);}
+  .stats .st span{font-size:11px;color:var(--gray);}
+
+  .item{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line);}
+  .item:last-child{border-bottom:none;}
+  .item .cb{flex:0 0 auto;width:20px;height:20px;border-radius:7px;border:2px solid var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;background:transparent;transition:transform .2s,background .2s;}
+  .item.done .cb{background:var(--accent);}
+  .item .cb:active{transform:scale(.82);}
+  .item.done .cb{animation:pop .2s ease;}
+  @keyframes pop{0%{transform:scale(.7)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+  .item .body{flex:1;font-size:14px;color:var(--text);}
+  .item.done .body{color:var(--gray);text-decoration:line-through;}
+  .item .meta{font-size:11px;color:var(--gray);}
+  .item .ops{flex:0 0 auto;display:flex;gap:6px;}
+  .item .ops button{background:none;border:none;color:var(--gray);font-size:15px;cursor:pointer;padding:2px 4px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{border:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:middle;}
+  th{background:var(--glass-solid);color:var(--text);font-weight:600;font-size:12px;}
+  td .row-ops{display:flex;gap:4px;}
+  td .row-ops button{background:none;border:none;cursor:pointer;font-size:14px;color:var(--gray);}
+
+  .countdown-row{display:flex;align-items:center;justify-content:space-between;padding:10px 4px;border-bottom:1px solid var(--line);}
+  .countdown-row:last-child{border-bottom:none;}
+  .countdown-row .nm{font-size:14px;color:var(--text);}
+  .countdown-row .dd{font-weight:700;color:var(--primary);font-size:15px;font-family:var(--font-en);}
+  .countdown-row .dd small{color:var(--gray);font-weight:400;font-size:11px;}
+  .countdown-row .ops button{background:none;border:none;color:var(--gray);font-size:15px;cursor:pointer;}
+
+  .cards-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;}
+  .skill-card{flex:0 0 150px;background:var(--glass-bg);-webkit-backdrop-filter:blur(var(--blur));backdrop-filter:blur(var(--blur));border:1px solid var(--glass-border);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow);animation:rise .4s ease both;}
+  .skill-card .nm{font-weight:700;font-size:14px;color:var(--ink);}
+  .skill-card .bar{height:8px;background:var(--glass-solid);border-radius:6px;margin:8px 0;overflow:hidden;}
+  .skill-card .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));}
+  .skill-card .gl{font-size:11px;color:var(--gray);}
+  .skill-card .stt{font-size:11px;color:var(--text);margin-top:4px;}
+
+  .add-btn{margin-top:10px;width:100%;padding:11px;background:var(--glass-bg);border:1.5px dashed var(--accent);border-radius:14px;color:var(--text);font-size:13px;cursor:pointer;}
+  .add-btn:active{background:var(--glass-solid);}
+  .mini-note{font-size:11px;color:var(--gray);margin-top:8px;}
+
+  .modal-mask{position:fixed;inset:0;background:rgba(44,44,44,.45);z-index:80;display:none;align-items:flex-end;justify-content:center;}
+  .modal-mask.show{display:flex;}
+  .modal{background:var(--glass-bg);-webkit-backdrop-filter:blur(calc(var(--blur) + 10px)) saturate(1.3);backdrop-filter:blur(calc(var(--blur) + 10px)) saturate(1.3);border:1px solid var(--glass-border);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:18px 16px 24px;max-height:88vh;overflow:auto;box-shadow:var(--shadow);}
+  .modal h3{margin:0 0 14px;font-size:17px;color:var(--ink);}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12px;color:var(--text);margin-bottom:5px;}
+  .field input,.field select,.field textarea{width:100%;padding:11px;border:1px solid var(--glass-border);border-radius:12px;font-size:14px;font-family:inherit;background:var(--glass-flat);color:var(--text);outline:none;}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);}
+  .field input[type=number]{width:100%;}
+  .field textarea{resize:vertical;min-height:60px;}
+  .field .imgpick{height:90px;border-radius:12px;background:var(--glass-flat);display:flex;align-items:center;justify-content:center;color:var(--gray);font-size:12px;cursor:pointer;background-size:cover;background-position:center;border:1px dashed var(--accent);}
+  .modal-ops{display:flex;gap:10px;margin-top:8px;}
+  .modal-ops button{flex:1;padding:13px;border-radius:14px;font-size:14px;cursor:pointer;border:none;}
+  .modal-ops .save{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;font-weight:600;}
+  .modal-ops .cancel{background:var(--glass-solid);color:var(--text);border:1px solid var(--glass-border);}
+
+  .pill{display:inline-block;background:var(--glass-solid);border:1px solid var(--glass-border);border-radius:12px;padding:2px 8px;font-size:11px;color:var(--text);margin:2px;}
+  .mind-top{background:var(--glass-solid);-webkit-backdrop-filter:blur(var(--blur));backdrop-filter:blur(var(--blur));border:1px solid var(--glass-border);border-left:4px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;box-shadow:var(--shadow);}
+  .mind-top .mt{font-size:11px;color:var(--gray);font-family:var(--font-en);}
+  .mind-top .mm{font-size:14px;font-weight:600;margin-top:2px;color:var(--ink);}
+  .feed-input{display:flex;gap:8px;margin-bottom:12px;}
+  .feed-input input{flex:1;padding:11px;border:1px solid var(--glass-border);border-radius:12px;font-size:13px;background:var(--glass-flat);color:var(--text);}
+  .feed-input button{background:linear-gradient(135deg,var(--primary),var(--accent));border:none;color:#fff;border-radius:12px;padding:0 16px;font-size:13px;cursor:pointer;}
+  .feed-cat{font-size:11px;color:var(--accent);font-weight:600;font-style:normal;}
+  .feed-item{padding:9px 4px;border-bottom:1px solid var(--line);font-size:13px;color:var(--text);}
+  .feed-item .src{font-size:10px;color:var(--gray);margin-top:2px;}
+  .toast{position:fixed;left:50%;bottom:60px;transform:translateX(-50%);background:rgba(44,44,44,.9);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;z-index:99;opacity:0;transition:opacity .25s;pointer-events:none;max-width:80%;text-align:center;}
+  .toast.show{opacity:1;}
+  .back-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+  .back-row button{background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink);}
+
+  .theme-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;}
+  .theme-opt{background:var(--glass-solid);border:1.5px solid var(--glass-border);border-radius:14px;padding:12px;text-align:center;cursor:pointer;font-size:13px;color:var(--text);}
+  .theme-opt.active{border-color:var(--accent);font-weight:700;}
+  .theme-opt .sw{height:30px;border-radius:8px;margin-bottom:8px;}
+  .theme-opt.cold .sw{background:linear-gradient(135deg,#F2EFEC,#D4C5B0);}
+  .theme-opt.warm .sw{background:linear-gradient(135deg,#FBF6F0,#E8C4C4);}
+  .theme-opt.minimal .sw{background:linear-gradient(135deg,#FFFFFF,#CCCCCC);}
+  .theme-opt.dark .sw{background:linear-gradient(135deg,#1F1F1F,#D4C5B0);}
+  .slider-row{margin:12px 0;}
+  .slider-row label{font-size:12px;color:var(--text);display:flex;justify-content:space-between;}
+  .slider-row input{width:100%;accent-color:var(--accent);margin-top:6px;}
+
+  /* 视频学习区 */
+  .video-list{margin-top:8px;}
+  .video-item{background:var(--glass-solid);border:1px solid var(--glass-border);border-radius:12px;padding:8px;margin-bottom:8px;}
+  .video-item .vhead{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink);}
+  .video-item .vhead .vtitle{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .video-item .vhead button{background:none;border:none;color:var(--gray);font-size:14px;cursor:pointer;}
+  .video-item iframe{width:100%;height:190px;border:none;border-radius:8px;margin-top:6px;background:#000;}
+  .video-input{display:flex;gap:8px;margin-top:8px;}
+  .video-input input{flex:1;padding:10px;border:1px solid var(--glass-border);border-radius:12px;font-size:13px;background:var(--glass-flat);color:var(--text);}
+  .video-input button{background:linear-gradient(135deg,var(--primary),var(--accent));border:none;color:#fff;border-radius:12px;padding:0 14px;font-size:13px;cursor:pointer;}
+</style>
+<style id="user-style"></style>
+</head>
+<body>
+<div class="app">
+  <div id="bg-layer"></div>
+  <div class="halos"><span class="halo h1"></span><span class="halo h2"></span></div>
+  <div class="topbar">
+    <button class="menu-btn" onclick="openDrawer()">☰</button>
+    <div class="title" id="topTitle">鞠式养成工作台<small>像小鞠一样闪闪发光</small></div>
+    <div class="clock"><b id="clockT">--:--:--</b><span id="clockD">--</span></div>
+  </div>
+
+  <div class="view active" id="view-home"></div>
+  <div class="view" id="view-module"></div>
+
+  <div class="drawer-mask" id="drawerMask" onclick="closeDrawer()"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-head"><h2>🌸 鞠式养成</h2><p>菜单 · 15 个栏目</p></div>
+    <div class="drawer-list" id="drawerList"></div>
+    <div class="drawer-foot">
+      <button onclick="showDecor()">🎨 装修工坊（样式 / 背景 / 字体 / 存档）</button>
+    </div>
+  </div>
+
+  <div class="boot-mask" id="bootMask">
+    <div class="boot-card">
+      <div class="bg" id="bootBg" onclick="pickImage('meta.bgImage',()=>renderBoot())">点击设置背景图 ✨</div>
+      <h1>✨ 今天也要像小鞠一样闪闪发光 ✨</h1>
+      <div class="boot-quote">
+        <div class="zh" id="bootZh"></div>
+        <div class="en" id="bootEn"></div>
+      </div>
+      <button onclick="closeBoot()">开始新的一天 ✨</button>
+      <button class="switch-q" onclick="switchBootQuote()">换一句语录 ↻</button>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="modalMask" onclick="if(event.target===this)closeModal()">
+    <div class="modal" id="modalBox"></div>
+  </div>
+
+  <div class="modal-mask" id="coverMask" onclick="if(event.target===this)closeCover()">
+    <div class="modal" id="coverBox"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* ============ 常量数据 ============ */
+const QUOTES=[
+  {zh:"好好努力总是没有错的，好好耕耘才会迎来收获的季节。",en:"Hard work is never wrong; only by tending the field will the harvest season come."},
+  {zh:"放弃一定失败。忍过别人不能忍的才算本事。",en:"Giving up means certain failure. Real strength is enduring what others cannot."},
+  {zh:"不要活在别人的幻想里。",en:"Don't live inside someone else's fantasy of you."},
+  {zh:"不着急证明自己，一步一步走。",en:"No need to prove yourself in a hurry—just take it one step at a time."},
+  {zh:"这是一个用实力说话的世界。",en:"This is a world where strength does the talking."},
+  {zh:"永远相信美好的事情即将发生。",en:"Always believe that beautiful things are about to happen."},
+  {zh:"时间会把你想要的东西慢慢都给你。",en:"Time will slowly hand you everything you've wished for."},
+  {zh:"学习一个东西只要你每天练习，就会越来越好。",en:"Learn anything and, with daily practice, you'll only get better."},
+  {zh:"站有站相，坐有坐相，骨子里的挺拔。",en:"Stand with poise and sit with grace—an uprightness from the bones."},
+  {zh:"她的精致不是偶尔惊艳，是日常标配。",en:"Her refinement isn't a rare dazzle; it's her everyday standard."},
+  {zh:"面朝阳，心亦朝阳。",en:"Face the sun, and let your heart be sunny too."},
+  {zh:"我很满意我自己。",en:"I am perfectly content with who I am."},
+  {zh:"再累一点，再苦一点，成功就在眼前。",en:"A little more tired, a little more bitter—success is right before your eyes."},
+  {zh:"生气是拿别人的错误惩罚自己。",en:"Anger is punishing yourself for someone else's mistake."},
+  {zh:"我的梦想是什么都会，且什么都好，然后成为别人的梦想。",en:"My dream is to be good at everything and good at being me—then become someone else's dream."},
+  {zh:"你只管努力，剩下的交给时间。",en:"Just keep striving; leave the rest to time."}
+];
+
+const MIND_DEFAULT=[
+  {t:"睁开眼",m:"我很满意我自己。"},
+  {t:"早八犯困",m:"再累一点，再苦一点，成功就在眼前。"},
+  {t:"学不进去",m:"好好努力总是没有错的，好好耕耘才会迎来收获的季节。"},
+  {t:"想放弃",m:"放弃一定失败。忍过别人不能忍的才算本事。"},
+  {t:"人际内耗",m:"生气是拿别人的错误惩罚自己。"},
+  {t:"容貌焦虑",m:"不要活在别人的幻想里。"},
+  {t:"看不到进步",m:"不着急证明自己，一步一步走。"},
+  {t:"考前紧张",m:"这是一个用实力说话的世界。"},
+  {t:"睡前",m:"永远相信美好的事情即将发生。"},
+  {t:"终极信念",m:"我的梦想是什么都会，且什么都好，然后成为别人的梦想。"}
+];
+
+const MODULE_DEFS={
+  schedule:{icon:"🌸",title:"今日鞠式日程",quote:"好好努力总是没有错的，好好耕耘才会迎来收获的季节。",
+    panels:[
+      {type:"checklist",key:"segments",title:"任务模板",addLabel:"添加时段任务",
+        fields:[{name:"time",label:"时段",type:"text"},{name:"task",label:"任务",type:"text"}],
+        defaults:[
+          {time:"🌅 晨间 7:20-8:10",task:"温水/护肤/防晒/穿搭/早餐/早读"},
+          {time:"🏫 上午 8:10-12:10",task:"坐前三排/坐姿三要点/标记考点"},
+          {time:"☕ 课间微调",task:"靠墙站/踮脚尖/转脚踝"},
+          {time:"🍱 午间 12:10-14:20",task:"午餐公式/贴墙站/午休45分钟"},
+          {time:"🏛️ 下午 14:30-18:10",task:"同上午"},
+          {time:"⚔️ 傍晚 18:10-21:30",task:"六级急诊/行测断舍离"},
+          {time:"🌙 晚间 21:30-23:30",task:"专业课/燃脂/护肤/三省/熄灯"}
+        ]},
+      {type:"countdown",key:"exams",title:"考试倒计时",addLabel:"添加倒计时",nameField:"name",dateField:"date",
+        defaults:[{name:"距六级",date:"2026-12-12"},{name:"距国考",date:"2026-11-28"},{name:"距期末",date:"2027-01-15"}]}
+    ]},
+  refinement:{icon:"✨",title:"精致感修行",quote:"她的精致不是偶尔惊艳，是日常标配。",
+    panels:[
+      {type:"checklist",key:"daily",title:"每日打卡",addLabel:"添加打卡项",fields:[{name:"text",label:"内容",type:"text"}],
+        defaults:[
+          {text:"防晒涂够量"},{text:"发根吹蓬松"},{text:"纯色+高腰线穿搭"},{text:"睡前梳头3分钟"},
+          {text:"护肤+身体乳"},{text:"对镜微笑练习"},{text:"戒奶茶/甜品/油炸"},{text:"睡前涂润唇膏"}
+        ]},
+      {type:"table",key:"longterm",title:"长期维护",addLabel:"添加维护项",
+        columns:[{name:"item",label:"项目",type:"text"},{name:"freq",label:"频率",type:"text"}],
+        defaults:[{item:"发膜",freq:"每周1次"},{item:"修剪发尾",freq:"每月"},{item:"修眉/去黑头",freq:"每2周"},{item:"衣橱换季整理",freq:"每季"}]}
+    ]},
+  posture:{icon:"🧘",title:"体态与气质",quote:"站有站相，坐有坐相，骨子里的挺拔。",
+    panels:[
+      {type:"checklist",key:"daily",title:"每日打卡",addLabel:"添加打卡项",fields:[{name:"text",label:"内容",type:"text"}],
+        defaults:[{text:"坐姿“前1/3”累计≥6小时"},{text:"靠墙站累计≥15分钟"},{text:"走路抬头收下巴"},{text:"睡前拉伸5分钟"}]},
+      {type:"table",key:"monthly",title:"月度记录",addLabel:"添加周记录",
+        columns:[{name:"date",label:"日期",type:"text"},{name:"weight",label:"体重",type:"text"},{name:"waist",label:"腰围",type:"text"},{name:"thigh",label:"大腿围",type:"text"},{name:"score",label:"自评(1-5)",type:"select",options:["1","2","3","4","5"]}],
+        defaults:[{date:"第1周"},{date:"第2周"},{date:"第3周"},{date:"第4周"}]}
+    ]},
+  cet6:{icon:"📚",title:"学识进阶·六级",quote:"学习一个东西只要你每天练习，就会越来越好。",
+    panels:[
+      {type:"checklist",key:"daily",title:"每日任务",addLabel:"添加任务",fields:[{name:"text",label:"内容",type:"text"}],
+        defaults:[{text:"精做1篇仔细阅读"},{text:"精翻2个长难句"},{text:"录入“鞠式黑名单”生词（≥5个）"},{text:"复习昨日黑名单"}]},
+      {type:"table",key:"progress",title:"进度追踪",addLabel:"添加项目",
+        columns:[{name:"name",label:"项目",type:"text"},{name:"goal",label:"目标",type:"text"},{name:"cur",label:"当前",type:"text"}],
+        defaults:[{name:"词汇量",goal:"4000+"},{name:"真题完成数",goal:"20套"},{name:"模考分数",goal:"425+"}]}
+    ]},
+  gongkao:{icon:"⚔️",title:"拾薪筑途·考公",quote:"放弃一定失败。忍过别人不能忍的才算本事。",
+    panels:[
+      {type:"checklist",key:"daily",title:"每日任务",addLabel:"添加任务",fields:[{name:"text",label:"内容",type:"text"}],
+        defaults:[{text:"行测·资料分析（1组+复盘）"},{text:"行测·判断推理（1组+复盘）"},{text:"申论素材积累（≥3条）"},{text:"申论金句背诵（≥1句）"}]},
+      {type:"table",key:"progress",title:"进度追踪",addLabel:"添加模块",
+        columns:[{name:"name",label:"模块",type:"text"},{name:"goal",label:"目标正确率",type:"text"},{name:"cur",label:"当前",type:"text"}],
+        defaults:[{name:"资料分析",goal:"80%"},{name:"判断推理",goal:"80%"},{name:"言语理解",goal:"75%"}]},
+      {type:"table",key:"shenlun",title:"申论素材库（自建分类）",addLabel:"添加素材",
+        columns:[{name:"cat",label:"分类",type:"select",options:["民生","法治","创新","生态","文化","其他"]},{name:"content",label:"内容",type:"text"}],
+        defaults:[]}
+    ]},
+  money:{icon:"💰",title:"银两台账",quote:"时间会把你想要的东西慢慢都给你。",
+    panels:[
+      {type:"table",key:"records",title:"每日记账",addLabel:"记一笔",
+        columns:[{name:"date",label:"日期",type:"date"},{name:"item",label:"项目",type:"text"},{name:"amount",label:"金额",type:"number"},{name:"cat",label:"类别",type:"select",options:["餐饮","护肤","穿搭","学习","社交","其他"]},{name:"need",label:"是否必要",type:"select",options:["是","否"]}],
+        defaults:[]},
+      {type:"table",key:"monthly",title:"月度统计",addLabel:"添加类别",
+        columns:[{name:"cat",label:"项目",type:"text"},{name:"budget",label:"预算",type:"number"},{name:"actual",label:"实际",type:"number"},{name:"balance",label:"结余",type:"formula"}],
+        defaults:[{cat:"餐饮"},{cat:"护肤"},{cat:"穿搭"},{cat:"学习"}]},
+      {type:"funds",key:"fund",title:"变美基金",
+        fields:[{name:"month",label:"本月存入",type:"number"},{name:"total",label:"累计",type:"number"},{name:"goal",label:"下一目标",type:"text"}],
+        defaults:{month:0,total:0,goal:""}}
+    ]},
+  skills:{icon:"🛠️",title:"技途深耕",quote:"技多不压身，未来多一条路。",
+    panels:[
+      {type:"cards",key:"cards",title:"技能卡片",addLabel:"添加技能",
+        columns:[{name:"name",label:"技能",type:"text"},{name:"prog",label:"进度(%)",type:"number"},{name:"goal",label:"本周目标",type:"text"},{name:"status",label:"状态",type:"select",options:["进行中","未开始","已完成"]}],
+        defaults:[{name:"PPT制作",prog:0,goal:"",status:"进行中"},{name:"Excel函数",prog:0,goal:"",status:"未开始"},{name:"面试技巧",prog:0,goal:"",status:"未开始"}]}
+    ]},
+  hot:{icon:"📰",title:"热点速览",quote:"减少信息差。",
+    panels:[
+      {type:"checklist",key:"beauty",title:"鞠式变美干货TOP3",addLabel:"添加一条",fields:[{name:"text",label:"内容",type:"text"}],defaults:[]},
+      {type:"checklist",key:"society",title:"社会热点TOP3",addLabel:"添加一条",fields:[{name:"text",label:"内容",type:"text"}],defaults:[]},
+      {type:"checklist",key:"policy",title:"考公/六级最新政策",addLabel:"添加一条",fields:[{name:"text",label:"内容",type:"text"}],defaults:[]},
+      {type:"checklist",key:"read",title:"每日打卡",addLabel:"添加",fields:[{name:"text",label:"内容",type:"text"}],defaults:[{text:"已浏览10分钟"}]}
+    ]},
+  books:{icon:"📖",title:"书页漫游",quote:"腹有诗书气自华。",
+    panels:[
+      {type:"table",key:"list",title:"阅读记录",addLabel:"添加书目",
+        columns:[{name:"name",label:"书名",type:"text"},{name:"author",label:"作者",type:"text"},{name:"prog",label:"进度(%)",type:"number"},{name:"start",label:"开始日",type:"date"}],
+        defaults:[]}
+    ]},
+  travel:{icon:"🎬",title:"旅途与live",quote:"面朝阳，心亦朝阳。",
+    panels:[
+      {type:"table",key:"list",title:"生活记录",addLabel:"添加记录",
+        columns:[{name:"date",label:"日期",type:"date"},{name:"event",label:"事件",type:"text"},{name:"mood",label:"心情",type:"text"},{name:"img",label:"图片",type:"image"}],
+        defaults:[]}
+    ]},
+  alert:{icon:"🚨",title:"红色预警档期",quote:"提前准备，不打无准备之仗。",
+    panels:[
+      {type:"table",key:"exams",title:"考试节点",addLabel:"添加节点",
+        columns:[{name:"name",label:"考试",type:"text"},{name:"date",label:"日期",type:"date"},{name:"left",label:"倒计时",type:"countdown",dateField:"date"},{name:"status",label:"报名状态",type:"select",options:["未报名","已报名","已缴费"]}],
+        defaults:[{name:"六级",date:"2026-12-12",status:"未报名"},{name:"国考",date:"2026-11-28",status:"未报名"},{name:"期末",date:"2027-01-15",status:"未报名"}]},
+      {type:"checklist",key:"special",title:"特殊提醒",addLabel:"添加提醒",fields:[{name:"text",label:"内容",type:"text"}],
+        defaults:[{text:"生理期"},{text:"护肤加强"}]}
+    ]},
+  annual:{icon:"📈",title:"年度成长盘点",quote:"不着急证明自己，一步一步走。",
+    panels:[
+      {type:"table",key:"quarter",title:"季度里程碑",addLabel:"添加阶段",
+        columns:[{name:"stage",label:"阶段",type:"text"},{name:"goal",label:"核心目标",type:"text"},{name:"done",label:"完成情况",type:"text"}],
+        defaults:[
+          {stage:"大三上 9-12月",goal:"六级首战+行测基础+稳住绩点"},
+          {stage:"大三下 1-6月",goal:"六级通过+行测强化+申论入门"},
+          {stage:"大四上 9-12月",goal:"国考笔试+毕业论文开题"},
+          {stage:"大四下 1-6月",goal:"省考+面试+论文答辩"}
+        ]},
+      {type:"table",key:"compare",title:"年度对比",addLabel:"添加维度",
+        columns:[{name:"dim",label:"维度",type:"text"},{name:"start",label:"年初",type:"text"},{name:"end",label:"年末",type:"text"},{name:"change",label:"变化",type:"text"}],
+        defaults:[
+          {dim:"体重",start:"110斤"},{dim:"腰围"},{dim:"六级分数"},{dim:"行测正确率"},{dim:"精致感自评(1-10)",start:""}
+        ]},
+      {type:"quote",text:"这一年，我离“成为别人的梦想”近了多少？"}
+    ]},
+  xiaohongshu:{icon:"📕",title:"小红书收藏",quote:"收藏是开始，消化才是拥有。",
+    panels:[
+      {type:"table",key:"posts",title:"收藏帖",addLabel:"添加收藏",
+        columns:[{name:"title",label:"标题/主题",type:"text"},{name:"link",label:"链接",type:"text"},{name:"cat",label:"分类",type:"select",options:["变美","穿搭","学习","生活","美食","其他"]},{name:"points",label:"要点/心得",type:"text"}],
+        defaults:[]},
+      {type:"checklist",key:"todo",title:"待消化清单",addLabel:"添加待整理",fields:[{name:"text",label:"内容",type:"text"}],
+        defaults:[]}
+    ]}
+};
+
+const NAV_ORDER_DEFAULT=["home","schedule","refinement","posture","cet6","gongkao","money","skills","hot","books","travel","alert","annual","videos","xiaohongshu","decor"];
+const BANNER_FILTER={refinement:"saturate(.9) brightness(1.03)",gongkao:"grayscale(.25) contrast(1.1)",annual:"brightness(1.06) saturate(1.05)"};
+const FEED_TYPES={link:"链接",image:"图片",file:"文件",text:"文字"};
+const COLUMN_TITLES={home:"首页",schedule:"今日鞠式日程",refinement:"精致感修行",posture:"体态与气质",cet6:"学识进阶·六级",gongkao:"拾薪筑途·考公",money:"银两台账",skills:"技途深耕",hot:"热点速览",books:"书页漫游",travel:"旅途与live",alert:"红色预警档期",annual:"年度成长盘点",videos:"视频专栏",xiaohongshu:"小红书收藏",decor:"装修工坊"};
+
+/* ============ 装修工坊：默认初始CSS（黑灰白冷淡风） ============ */
+const DEFAULT_CSS=`/* ========================================
+   韩系黑灰白 · 冷淡风 · 鞠式工作台
+   ======================================== */
+
+/* 全局背景 */
+body, .app-container {
+  background: #F5F5F5 !important;
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(200,200,200,0.08) 0%, transparent 70%),
+    radial-gradient(ellipse at 80% 80%, rgba(180,180,180,0.05) 0%, transparent 60%) !important;
+}
+
+/* 毛玻璃卡片 */
+.card, .task-card, .stat-card, .nav-card {
+  background: rgba(255,255,255,0.45) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(200,200,200,0.15) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 4px 20px rgba(150,150,150,0.05) !important;
+}
+
+/* 文字颜色 */
+h1, h2, h3, .title, .main-text {
+  color: #1A1A1A !important;
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif !important;
+  font-weight: 300 !important;
+}
+
+.body-text, .content, .desc {
+  color: #333333 !important;
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif !important;
+  font-weight: 300 !important;
+}
+
+.helper-text, .hint, .placeholder {
+  color: #AAAAAA !important;
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif !important;
+  font-weight: 300 !important;
+}
+
+/* 强调色（黑灰白系） */
+.accent, .highlight, .selected {
+  color: #2C2C2C !important;
+  border-color: #2C2C2C !important;
+}
+
+/* 按钮 */
+.btn-primary, .submit-btn {
+  background: #2C2C2C !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  border-radius: 30px !important;
+  padding: 10px 24px !important;
+  font-weight: 300 !important;
+  letter-spacing: 0.5px !important;
+}
+
+.btn-secondary {
+  background: rgba(200,200,200,0.2) !important;
+  color: #333333 !important;
+  border: 1px solid rgba(200,200,200,0.2) !important;
+  border-radius: 30px !important;
+}
+
+/* 分割线 */
+.divider {
+  border: none !important;
+  height: 1px !important;
+  background: linear-gradient(to right, transparent, #CCCCCC, transparent) !important;
+  margin: 16px 0 !important;
+}
+
+/* 打卡项 */
+.check-item {
+  background: rgba(255,255,255,0.3) !important;
+  border-radius: 12px !important;
+  padding: 10px 16px !important;
+  border: 1px solid rgba(200,200,200,0.1) !important;
+}
+
+.check-item.checked {
+  background: rgba(44,44,44,0.05) !important;
+  border-color: rgba(44,44,44,0.2) !important;
+}
+
+/* 进度条 */
+.progress-bar {
+  background: rgba(200,200,200,0.2) !important;
+  border-radius: 10px !important;
+  height: 6px !important;
+}
+
+.progress-fill {
+  background: #2C2C2C !important;
+  border-radius: 10px !important;
+  height: 6px !important;
+}
+
+/* 数字统计 */
+.stat-number {
+  color: #1A1A1A !important;
+  font-size: 28px !important;
+  font-weight: 300 !important;
+  letter-spacing: -0.5px !important;
+}
+
+/* 引用/语录 */
+.quote-text {
+  color: #1A1A1A !important;
+  font-family: "Didot", "Times New Roman", serif !important;
+  font-style: italic !important;
+  font-size: 16px !important;
+  line-height: 1.6 !important;
+}
+
+/* 底部导航 */
+.tab-bar, .nav-bottom {
+  background: rgba(255,255,255,0.5) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-top: 1px solid rgba(200,200,200,0.1) !important;
+}`;
+
+/* ============ 字体预设 ============ */
+const FONT_ZH={
+  "系统默认":"",
+  "苹方-细":"PingFang SC Light, PingFang SC, sans-serif",
+  "苹方-常规":"PingFang SC, sans-serif",
+  "苹方-粗":"PingFang SC Semibold, PingFang SC, sans-serif",
+  "思源黑体-Light":"Noto Sans SC Light, Noto Sans SC, sans-serif",
+  "思源黑体-Regular":"Noto Sans SC, sans-serif",
+  "方正悠黑":"FZYouHei, YouHei, sans-serif",
+  "霞鹜文楷":"LXGW WenKai, KaiTi, serif",
+  "霞鹜文楷-Light":"LXGW WenKai Light, KaiTi, serif",
+  "Noto Serif SC":"Noto Serif SC, serif"
+};
+const FONT_EN={
+  "系统默认":"",
+  "Didot":"Didot, Georgia, serif",
+  "Mrs Eaves":"MrsEaves, Georgia, serif",
+  "Cormorant Garamond":"Cormorant Garamond, Georgia, serif",
+  "Georgia":"Georgia, serif",
+  "Helvetica Neue":"Helvetica Neue, Arial, sans-serif",
+  "Inter":"Inter, Arial, sans-serif",
+  "Times New Roman":"Times New Roman, serif"
+};
+
+/* ============ 状态 ============ */
+const LS_KEY="ju_workbench_v1";
+let state=loadState();
+
+function loadState(){
+  let saved=null;
+  try{saved=JSON.parse(localStorage.getItem(LS_KEY));}catch(e){}
+  const def=defaultState();
+  if(!saved||!saved.modules)return def;
+  def.meta=Object.assign({},def.meta,saved.meta||{});
+  def.feeds=saved.feeds||(saved.meta&&saved.meta.feeds)||{};
+  def.videos=saved.videos||{};
+  for(const id in def.modules){
+    if(saved.modules[id]&&saved.modules[id].panels){
+      for(const k in def.modules[id].panels){
+        if(saved.modules[id].panels[k]!==undefined){
+          def.modules[id].panels[k]=saved.modules[id].panels[k];
+        }
+      }
+    }
+  }
+  return def;
+}
+function defaultState(){
+  const modules={};
+  for(const id in MODULE_DEFS){
+    const def=MODULE_DEFS[id];const m={panels:{}};
+    def.panels.forEach(p=>{
+      if(p.type==="funds") m.panels[p.key]=JSON.parse(JSON.stringify(p.defaults||{}));
+      else m.panels[p.key]=(p.defaults||[]).map(d=>({id:uid(),...JSON.parse(JSON.stringify(d))}));
+    });
+    modules[id]=m;
+  }
+  return {
+    meta:{usageDays:[],checkinDays:[],bgImage:null,heroImage:null,images:{},
+      navOrder:NAV_ORDER_DEFAULT.slice(),navHidden:{},mind:MIND_DEFAULT.map(x=>({...x})),
+      theme:{mode:"cold",blur:16,glass:0.38,radius:20},videoOn:{},
+      font:{zh:"",en:"",size:15,titleScale:1.2},
+      userCss:null,decorBg:null,decorHistory:[]},
+    feeds:{},
+    videos:{},
+    modules
+  };
+}
+function save(quiet){try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){if(!quiet)toast("⚠️ 本地存储空间不足，部分内容可能未保存。请删除部分图片或记录后重试。");console.warn("save failed",e);}}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+
+/* ============ 工具 ============ */
+function $(s){return document.querySelector(s);}
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),1800);}
+function esc(s){return (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function daysBetween(a,b){const d1=new Date(a+"T00:00:00");const d2=new Date(b+"T00:00:00");return Math.round((d2-d1)/86400000);}
+
+function pickImage(path,cb,opts){
+  opts=opts||{};
+  const inp=document.createElement("input");inp.type="file";inp.accept="image/*";
+  inp.onchange=()=>{const f=inp.files[0];if(!f)return;
+    compressImage(f,(data,err)=>{
+      if(err){toast(err);return;}
+      setPath(path,data);save();cb&&cb();
+    },opts);
+  };
+  inp.click();
+}
+function setPath(path,val){
+  const parts=path.split(".");let o=state;
+  for(let i=0;i<parts.length-1;i++)o=o[parts[i]];
+  o[parts[parts.length-1]]=val;
+}
+function getPath(path){const parts=path.split(".");let o=state;for(const p of parts){if(o==null)return null;o=o[p];}return o;}
+function compressImage(file,cb,opts){
+  opts=opts||{};
+  const name=(file.name||"").toLowerCase();
+  const type=(file.type||"").toLowerCase();
+  const maxBytes=opts.maxBytes||(5*1024*1024);
+  const okExt=/\.(jpe?g|png|gif|webp|bmp)$/.test(name);
+  const okType=/^image\/(jpeg|png|gif|webp|bmp)/.test(type);
+  if(!okExt && !okType){
+    if(/\.heic|\.heif/.test(name)||type==="image/heic"||type==="image/heif")
+      return cb(null,"⚠️ 图片格式不支持：iPhone 实况/HEIC 格式浏览器无法识别。请在相册中把该照片「导出为 JPG」或改用 JPEG/PNG 后重试。");
+    return cb(null,"⚠️ 图片格式不支持（仅支持 JPG / PNG / GIF / WEBP）。");
+  }
+  if(file.size>maxBytes)
+    return cb(null,"⚠️ 图片超过大小限制（建议 ≤5MB）。请压缩后重试。");
+  const r=new FileReader();
+  r.onerror=()=>cb(null,"⚠️ 读取图片失败，请重试。");
+  r.onload=()=>{const img=new Image();
+    img.onerror=()=>cb(null,"⚠️ 图片解码失败，可能是损坏或特殊格式。请换一张 JPG/PNG。");
+    img.onload=()=>{try{
+      let max=opts.fullRes?2000:1200;
+      let w=img.width,h=img.height;if(!w||!h)return cb(null,"⚠️ 图片尺寸异常，解码失败。");
+      if(w>max||h>max){const s=max/Math.max(w,h);w=Math.round(w*s);h=Math.round(h*s);}
+      const c=document.createElement("canvas");c.width=w;c.height=h;
+      c.getContext("2d").drawImage(img,0,0,w,h);
+      let q=0.62,out=c.toDataURL("image/jpeg",q);
+      while(out.length>1200000 && q>0.35){q=Math.max(0.35,q-0.08);out=c.toDataURL("image/jpeg",q);}
+      cb(out,null);
+    }catch(e){cb(null,"⚠️ 处理图片出错："+(e&&e.message?e.message:e)+"。请换一张 JPG/PNG。");}};
+    img.src=r.result;
+  };
+  r.readAsDataURL(file);
+}
+/* ============ 封面调整编辑器 ============ */
+function openCoverEditor(key){
+  const url=key==="hero"?state.meta.heroImage:getPath("meta.images."+key);
+  if(!url){pickImageForCover(key);return;}
+  showCoverEditor(key,url,(state.meta.coverStyle&&state.meta.coverStyle[key])||{mode:"cover",x:0,y:0,scale:1});
+}
+function pickImageForCover(key){
+  const inp=document.createElement("input");inp.type="file";inp.accept="image/*";
+  inp.onchange=()=>{const f=inp.files[0];if(!f)return;
+    compressImage(f,(data,err)=>{if(err){toast(err);return;}
+      setPath(key==="hero"?"meta.heroImage":("meta.images."+key),data);
+      showCoverEditor(key,data,{mode:"cover",x:0,y:0,scale:1});
+    },{fullRes:true});
+  };
+  inp.click();
+}
+function coverCss(st){
+  const t="translate("+(st.x||0)+"px,"+(st.y||0)+"px) scale("+(st.scale||1)+")";
+  if(st.mode==="contain")return "object-fit:contain;transform:"+t+";";
+  if(st.mode==="stretch")return "object-fit:fill;transform:"+t+";";
+  return "object-fit:cover;transform:"+t+";";
+}
+function showCoverEditor(key,url,style){
+  const st={mode:style.mode||"cover",x:style.x||0,y:style.y||0,scale:style.scale||1};
+  const box=$("#coverBox");
+  box.innerHTML=
+    '<h3>🖼 设置封面 · 调整显示</h3>'+
+    '<div class="cover-preview" id="covPrev"><img id="covImg" src="'+url+'" style="'+coverCss(st)+'"></div>'+
+    '<div class="cover-modes">'+
+      '<button data-m="cover" class="'+(st.mode==="cover"?"active":"")+'">覆盖</button>'+
+      '<button data-m="contain" class="'+(st.mode==="contain"?"active":"")+'">适应</button>'+
+      '<button data-m="stretch" class="'+(st.mode==="stretch"?"active":"")+'">拉伸</button>'+
+    '</div>'+
+    '<div class="field"><label>缩放 <span id="covScaleV">'+st.scale.toFixed(2)+'</span></label><input type="range" min="0.5" max="2.5" step="0.05" value="'+st.scale+'" id="covScale" oninput="covZoom(this.value)"></div>'+
+    '<div class="mini-note">• 覆盖/拉伸：在预览框内「拖动」图片调整显示位置。<br>• 适应：完整显示，自动上下/左右留白。<br>• 🤖 智能建议：自动居中并采用覆盖（浏览器端无法真正识别人脸，此处以智能居中替代）。</div>'+
+    '<div class="modal-ops"><button class="cancel" onclick="covSmart()">🤖 智能建议</button><button class="cancel" onclick="closeCover()">取消</button><button class="save" onclick="covConfirm(\''+key+'\')">确认保存</button></div>';
+  $("#coverMask").classList.add("show");
+  box.querySelectorAll(".cover-modes button").forEach(b=>b.onclick=()=>{
+    st.mode=b.dataset.m;box.querySelectorAll(".cover-modes button").forEach(x=>x.classList.remove("active"));b.classList.add("active");
+    $("#covImg").style.cssText=coverCss(st);
+  });
+  const prev=$("#covPrev"),img=$("#covImg");let dragging=false,sx=0,sy=0,ox=st.x,oy=st.y;
+  const down=(x,y)=>{dragging=true;sx=x;sy=y;ox=st.x;oy=st.y;};
+  const move=(x,y)=>{if(!dragging)return;st.x=ox+(x-sx);st.y=oy+(y-sy);img.style.cssText=coverCss(st);};
+  prev.addEventListener("touchstart",e=>down(e.touches[0].clientX,e.touches[0].clientY),{passive:true});
+  prev.addEventListener("touchmove",e=>{move(e.touches[0].clientX,e.touches[0].clientY);e.preventDefault();},{passive:false});
+  prev.addEventListener("touchend",()=>dragging=false);
+  prev.addEventListener("mousedown",e=>down(e.clientX,e.clientY));
+  prev.addEventListener("mousemove",e=>move(e.clientX,e.clientY));
+  window.addEventListener("mouseup",()=>dragging=false);
+  window._covState=st;
+}
+function covZoom(v){const st=window._covState;st.scale=parseFloat(v);$("#covScaleV").textContent=parseFloat(v).toFixed(2);$("#covImg").style.cssText=coverCss(st);}
+function covSmart(){const st=window._covState;st.mode="cover";st.x=0;st.y=0;st.scale=1.05;const img=$("#covImg");if(img)img.style.cssText=coverCss(st);const sl=$("#covScale");if(sl){sl.value=1.05;$("#covScaleV").textContent="1.05";}$("#coverBox").querySelectorAll(".cover-modes button").forEach(b=>b.classList.toggle("active",b.dataset.m==="cover"));}
+function covConfirm(key){
+  const st=window._covState;state.meta.coverStyle=state.meta.coverStyle||{};state.meta.coverStyle[key]=st;save();
+  $("#coverMask").classList.remove("show");
+  if(key==="hero")renderHome();else renderModule(key);
+  toast("✨ 封面已保存");
+}
+function closeCover(){$("#coverMask").classList.remove("show");}
+
+/* ============ 装修工坊：样式 / 背景 / 字体 / 存档 ============ */
+function applyUserStyle(){
+  const css=state.meta.userCss||DEFAULT_CSS;
+  const el=$("#user-style");if(el)el.textContent=css;
+  const layer=$("#bg-layer");const bg=state.meta.decorBg;
+  if(bg){layer.style.display="block";layer.style.backgroundImage="url("+bg+")";}
+  else{layer.style.display="none";layer.style.backgroundImage="none";}
+  // 字体
+  const fc=state.meta.font||{zh:"",en:"",fs:15,titleScale:1.2};
+  document.documentElement.style.setProperty("--font-zh",FONT_ZH[fc.zh]||'"PingFang SC","Source Han Sans SC","Noto Sans SC Light",-apple-system,"Microsoft YaHei",sans-serif');
+  document.documentElement.style.setProperty("--font-en",FONT_EN[fc.en]||'"Didot","Cormorant Garamond",Georgia,"Times New Roman",serif');
+  document.documentElement.style.setProperty("--fs-size",(fc.fs||15)+"px");
+  document.documentElement.style.setProperty("--title-scale",(fc.titleScale||1.2));
+}
+function validateCSS(css){
+  let open=0,line=1;
+  for(let i=0;i<css.length;i++){
+    const c=css[i];
+    if(c==="\n")line++;
+    else if(c==="{")open++;
+    else if(c==="}"){open--;if(open<0)return "第 "+line+" 行：右花括号 } 多了或未配对，请检查是否少了对应的 {";}
+  }
+  if(open>0)return "括号未闭合：还差 "+open+" 个 }，请检查最后一段 CSS 是否少写了 }";
+  if(/\/\*([^*]|\*(?!\/))*$/.test(css))return "注释未闭合：发现有 /* 但没有对应的 */";
+  return null;
+}
+function applyCssFromDecor(){
+  const css=$("#cssInput").value;
+  const err=validateCSS(css);
+  if(err){toast("⚠️ CSS错误："+err);return;}
+  state.meta.userCss=css;save();applyUserStyle();
+  pushHistory("CSS已更新",css,state.meta.decorBg);renderDecor();toast("✨ CSS已应用");
+}
+function uploadDecorBg(){
+  pickImage("meta.decorBg",()=>{applyUserStyle();pushHistory("背景图已替换",state.meta.userCss,state.meta.decorBg);renderDecor();toast("✨ 背景已更换");});
+}
+function restoreDefaultBg(){
+  state.meta.decorBg=null;save();applyUserStyle();
+  pushHistory("恢复默认背景",state.meta.userCss,null);renderDecor();toast("已恢复纯色背景");
+}
+function restoreDefaultStyle(){
+  state.meta.userCss=DEFAULT_CSS;state.meta.decorBg=null;save();applyUserStyle();
+  pushHistory("恢复默认样式",DEFAULT_CSS,null);renderDecor();toast("✨ 已恢复初始黑灰白样式");
+}
+function saveCurrentStyle(){
+  pushHistory("手动存档",state.meta.userCss||DEFAULT_CSS,state.meta.decorBg);renderDecor();toast("✨ 已存档当前样式");
+}
+function pushHistory(suffix,css,bg){
+  const d=todayStr();
+  const desc=d+" "+(css&&css!==DEFAULT_CSS?"自定义CSS":"默认CSS")+(bg?" + 背景图":" + 默认背景")+"（"+suffix+"）";
+  state.meta.decorHistory.unshift({date:d,desc,css:css||DEFAULT_CSS,bg:bg||null});
+  if(state.meta.decorHistory.length>5)state.meta.decorHistory=state.meta.decorHistory.slice(0,5);
+  save();
+}
+function restoreHistory(idx){
+  const h=state.meta.decorHistory[idx];if(!h)return;
+  state.meta.userCss=h.css;state.meta.decorBg=h.bg;save();applyUserStyle();renderDecor();toast("✨ 已恢复该次存档");
+}
+function showDecor(){
+  currentView="decor";$("#view-home").classList.remove("active");$("#view-module").classList.add("active");
+  $("#topTitle").innerHTML="🎨 装修工坊";renderDecor();renderDrawer();
+}
+function renderDecor(){
+  try{ renderDecorInner(); }
+  catch(e){ renderDecorFallback(e); }
+}
+function renderDecorInner(){
+  const v=$("#view-module");
+  const cur=state.meta.userCss||DEFAULT_CSS;
+  const bg=state.meta.decorBg;
+  const fc=state.meta.font||{zh:"system",en:"system",fs:15,titleScale:1.2};
+  let h='<div class="back-row"><button onclick="showHome()">‹</button><div style="font-weight:600">🎨 装修工坊</div></div>';
+  h+='<div class="quote-bar">全局样式 / 背景图 / 字体 / 历史存档，均本地离线储存。改动立即生效。</div>';
+
+  /* 板块0：字体控制 */
+  h+='<div class="card"><h3>🔤 全局字体控制</h3>';
+  h+='<div class="field"><label>中文字体</label><select id="fontZh">'+Object.keys(FONT_ZH).map(k=>'<option '+(fc.zh===k?"selected":"")+'>'+k+'</option>').join("")+'</select></div>';
+  h+='<div class="field"><label>英文字体</label><select id="fontEn">'+Object.keys(FONT_EN).map(k=>'<option '+(fc.en===k?"selected":"")+'>'+k+'</option>').join("")+'</select></div>';
+  h+='<div class="slider-row"><label>全局基础字号 <span id="fsV">'+(fc.fs||15)+'px</span></label><input type="range" min="13" max="19" step="1" value="'+(fc.fs||15)+'" oninput="setFontSize(this.value)"></div>';
+  h+='<div class="slider-row"><label>标题字号比例 <span id="tsV">'+(fc.titleScale||1.2)+'x</span></label><input type="range" min="1.0" max="1.8" step="0.1" value="'+(fc.titleScale||1.2)+'" oninput="setTitleScale(this.value)"></div>';
+  h+='<div class="modal-ops"><button class="save" onclick="applyFont()">应用字体 ✨</button></div>';
+  h+='</div>';
+
+  /* 板块0.5：视频区开关 */
+  h+='<div class="card"><h3>🎬 视频区开关</h3><div class="mini-note">按栏目控制是否显示「B站视频学习」区，不需要的关掉即可。</div>';
+  h+='<div style="display:flex;flex-wrap:wrap;gap:6px">';
+  for(const id in MODULE_DEFS){
+    if(id==="xiaohongshu")continue;
+    const on=!(state.meta.videoOn&&state.meta.videoOn[id]===false);
+    h+='<span class="pill" style="cursor:pointer;border-color:'+(on?'var(--accent)':'var(--glass-border)')+';opacity:'+(on?'1':'.45')+'" onclick="toggleVideo(\''+id+'\')">'+(on?'✅':'⬜')+' '+MODULE_DEFS[id].icon+' '+esc(MODULE_DEFS[id].title)+'</span>';
+  }
+  h+='</div></div>';
+
+  /* 板块1：全局CSS */
+  h+='<div class="card"><h3>① 全局CSS样式库 <span class="tag" onclick="resetCssBox()" style="cursor:pointer">载入默认</span></h3>';
+  h+='<div class="mini-note">粘贴CSS后点「应用样式」，覆盖字体/颜色/圆角/毛玻璃/卡片/按钮/进度条/分割线等所有视觉参数。</div>';
+  h+='<div class="field"><textarea id="cssInput" style="width:100%;min-height:200px;font-family:monospace;font-size:12px;line-height:1.5;padding:10px;border:1px solid var(--glass-border);border-radius:12px;background:var(--glass-flat);color:var(--text)">'+esc(cur)+'</textarea></div>';
+  h+='<div class="modal-ops"><button class="cancel" onclick="restoreDefaultStyle()">恢复默认</button><button class="save" onclick="applyCssFromDecor()">应用样式 ✨</button></div>';
+  h+='</div>';
+
+  /* 板块2：背景图 */
+  h+='<div class="card"><h3>② 背景图片上传区</h3>';
+  h+='<div class="field"><div class="imgpick" id="decorBgPick" style="'+(bg?('background-image:url('+bg+')'):'')+'">'+(bg?"点击更换背景图 📷":"点击从相册选择背景图 📷")+'</div></div>';
+  h+='<div class="modal-ops"><button class="cancel" onclick="restoreDefaultBg()">移除背景（#F5F5F5）</button><button class="save" onclick="uploadDecorBg()">上传背景图 ✨</button></div>';
+  h+='</div>';
+
+  /* 板块3：历史存档 */
+  h+='<div class="card"><h3>③ 历史样式存档 <span class="tag" onclick="saveCurrentStyle()" style="cursor:pointer">存档当前</span></h3>';
+  h+='<div class="mini-note">最近 5 次操作，点击任意一条可一键恢复当时的 CSS + 背景组合。</div>';
+  if(!state.meta.decorHistory.length)h+='<div class="mini-note">暂无存档，应用CSS或更换背景会自动记录。</div>';
+  state.meta.decorHistory.forEach((rec,i)=>{
+    h+='<div class="item" onclick="restoreHistory('+i+')" style="cursor:pointer"><div class="body">🕘 '+esc(rec.desc)+'</div><div class="ops"><button onclick="event.stopPropagation();restoreHistory('+i+')">↺</button></div></div>';
+  });
+  h+='</div>';
+
+  /* 板块4：备份 */
+  h+='<div class="card"><h3>💾 数据备份</h3>';
+  h+='<div class="mini-note">导出为 JSON 文件，可保存到本地或云端；换设备时用「导入」恢复全部数据。</div>';
+  h+='<div class="modal-ops"><button class="save" onclick="exportData()">导出备份 ⬇</button><button class="cancel" onclick="importData()">导入恢复 ⬆</button></div>';
+  h+='</div>';
+
+  h+=renderFeedArea("decor");
+
+  h+='<div class="card"><h3>💡 快捷指令</h3><div class="mini-note">对我说：<br>·「打开装修工坊」→ 点菜单最底部 🎨<br>·「应用这个CSS」+ 粘贴代码 → 粘到板块①点「应用样式」<br>·「换背景」+ 图片 → 用板块②上传<br>·「恢复默认」→ 板块①「恢复默认」+ 板块②「移除背景」<br>·「存档当前样式」→ 板块③「存档当前」</div></div>';
+  v.innerHTML=h;
+  const ip=$("#decorBgPick");if(ip)ip.onclick=uploadDecorBg;
+}
+function renderDecorFallback(e){
+  const v=$("#view-module");
+  const hist=state.meta.decorHistory.length?state.meta.decorHistory.map(r=>"🕘 "+esc(r.desc)).join("<br>"):"暂无";
+  v.innerHTML='<div class="back-row"><button onclick="showHome()">‹</button><div style="font-weight:600">🎨 装修工坊</div></div>'+
+    '<div class="card"><h3>⚠️ 渲染异常 · 纯文本备选</h3><div class="mini-note">错误信息：'+esc(e&&e.message||String(e))+'</div></div>'+
+    '<div class="card"><h3>CSS粘贴区</h3><textarea id="cssInput" style="width:100%;min-height:160px;font-family:monospace;font-size:12px">'+esc(state.meta.userCss||DEFAULT_CSS)+'</textarea>'+
+      '<div class="modal-ops"><button class="save" onclick="applyCssFromDecor()">应用样式</button><button class="cancel" onclick="restoreDefaultStyle()">恢复默认</button></div></div>'+
+    '<div class="card"><h3>背景上传区</h3><div class="modal-ops"><button class="save" onclick="uploadDecorBg()">上传背景</button><button class="cancel" onclick="restoreDefaultBg()">移除背景</button></div></div>'+
+    '<div class="card"><h3>历史存档</h3><div class="mini-note">'+hist+'</div></div>';
+  const ip=$("#decorBgPick");if(ip)ip.onclick=uploadDecorBg;
+}
+function resetCssBox(){$("#cssInput").value=DEFAULT_CSS;toast("已载入默认CSS，点「应用样式」提交");}
+function setFontSize(v){$("#fsV").textContent=v+"px";state.meta.font=state.meta.font||{};state.meta.font.fs=parseInt(v);}
+function setTitleScale(v){$("#tsV").textContent=v+"x";state.meta.font=state.meta.font||{};state.meta.font.titleScale=parseFloat(v);}
+function applyFont(){
+  state.meta.font=state.meta.font||{};
+  state.meta.font.zh=$("#fontZh").value;
+  state.meta.font.en=$("#fontEn").value;
+  save();applyUserStyle();toast("✨ 字体已应用");
+}
+
+/* ============ 备份 ============ */
+function exportData(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="鞠式工作台备份_"+todayStr()+".json";a.click();
+  URL.revokeObjectURL(a.href);toast("✅ 备份已导出");
+}
+function importData(){
+  const inp=document.createElement("input");inp.type="file";inp.accept="application/json";
+  inp.onchange=()=>{const f=inp.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=()=>{try{
+      const data=JSON.parse(r.result);
+      if(!data||!data.modules)throw new Error("文件格式不正确");
+      state=data;save();applyUserStyle();renderHome();renderDrawer();toast("✅ 数据已恢复");
+    }catch(e){toast("⚠️ 导入失败："+(e.message||"文件损坏"));}};
+    r.readAsText(f);
+  };
+  inp.click();
+}
+
+/* ============ 开机 ============ */
+let bootQuoteIdx=-1;
+function dayIndex(){const d=new Date();const start=new Date(d.getFullYear(),0,0);return Math.floor((d-start)/86400000);}
+function renderBoot(){
+  const q=QUOTES[((bootQuoteIdx<0?dayIndex():bootQuoteIdx)%QUOTES.length+QUOTES.length)%QUOTES.length];
+  $("#bootZh").textContent=q.zh;$("#bootEn").textContent=q.en;
+  const bg=getPath("meta.bgImage");const el=$("#bootBg");
+  if(bg){el.style.backgroundImage="url("+bg+")";el.textContent="";}else{el.style.backgroundImage="";el.textContent="点击设置背景图 ✨";}
+}
+function switchBootQuote(){bootQuoteIdx=(bootQuoteIdx<0?dayIndex():bootQuoteIdx)+1+Math.floor(Math.random()*3);renderBoot();}
+function closeBoot(){$("#bootMask").style.display="none";}
+
+/* ============ 导航 ============ */
+function openDrawer(){renderDrawer();$("#drawer").classList.add("show");$("#drawerMask").classList.add("show");}
+function closeDrawer(){$("#drawer").classList.remove("show");$("#drawerMask").classList.remove("show");}
+function renderDrawer(){
+  const order=state.meta.navOrder||NAV_ORDER_DEFAULT;const list=$("#drawerList");list.innerHTML="";
+  order.forEach(id=>{
+    if(state.meta.navHidden[id])return;
+    const d=id==="home"?{icon:"🏠",title:"首页"}:id==="decor"?{icon:"🎨",title:"装修工坊"}:id==="videos"?{icon:"🎬",title:"视频专栏"}:MODULE_DEFS[id];
+    if(!d)return;
+    const b=document.createElement("button");b.className="nav-item"+(currentView===id?" active":"");
+    b.innerHTML='<span class="ic">'+d.icon+'</span><span>'+esc(d.title)+'</span>';
+    b.onclick=()=>{closeDrawer();if(id==="home")showHome();else showModule(id);};
+    list.appendChild(b);
+  });
+}
+let currentView="home";
+function showHome(){currentView="home";$("#view-module").classList.remove("active");$("#view-home").classList.add("active");$("#topTitle").innerHTML="鞠式养成工作台<small>像小鞠一样闪闪发光</small>";renderHome();renderDrawer();}
+function showModule(id){
+  if(id==="decor"){showDecor();return;}
+  if(id==="videos"){showVideoHub();return;}
+  try{
+    currentView=id;$("#view-home").classList.remove("active");$("#view-module").classList.add("active");
+    const d=MODULE_DEFS[id];$("#topTitle").innerHTML=d.icon+" "+esc(d.title);
+    renderModule(id);renderDrawer();
+  }catch(e){
+    $("#view-module").innerHTML='<div class="card" style="margin-top:20px"><h3>⚠️ 该栏目渲染出错</h3><div class="mini-note">错误信息：'+esc(e.message)+'<br>可点下方按钮重建该栏目数据（不影响其他栏目）。</div><div class="modal-ops"><button class="cancel" onclick="repairModule(\''+id+'\')">重建此栏目</button><button class="save" onclick="showHome()">回首页</button></div></div>';
+  }
+}
+function repairModule(id){
+  if(!MODULE_DEFS[id])return;
+  const def=MODULE_DEFS[id];const m={panels:{}};
+  def.panels.forEach(p=>{
+    if(p.type==="funds")m.panels[p.key]=JSON.parse(JSON.stringify(p.defaults||{}));
+    else m.panels[p.key]=(p.defaults||[]).map(d=>({id:uid(),...JSON.parse(JSON.stringify(d))}));
+  });
+  state.modules[id]=m;save();showModule(id);toast("✅ 已重建「"+def.title+"」");
+}
+
+/* ============ 首页 ============ */
+function renderHome(){
+  const hero=getPath("meta.heroImage");
+  const q=QUOTES[dayIndex()%QUOTES.length];
+  const grid=[["schedule","🌸","今日鞠式日程"],["refinement","✨","精致感修行"],["posture","🧘","体态与气质"],["cet6","📚","学识进阶·六级"],["gongkao","⚔️","拾薪筑途·考公"],["money","💰","银两台账"],["videos","🎬","视频专栏"],["xiaohongshu","📕","小红书收藏"]];
+  const stats=computeStats();
+  const mind=state.meta.mind[Math.floor(Math.random()*state.meta.mind.length)];
+  const v=$("#view-home");
+  const heroStyle=(state.meta.coverStyle&&state.meta.coverStyle.hero)||{mode:"cover",x:0,y:0,scale:1};
+  const heroImg=hero?('<img class="hero-img" src="'+hero+'" style="'+coverCss(heroStyle)+'">'):'';
+  v.innerHTML=
+    '<div class="home-hero" id="heroSlot" onclick="openCoverEditor(\'hero\')">'+
+      heroImg+
+      '<div class="date">'+new Date().toLocaleDateString("zh-CN",{year:"numeric",month:"long",day:"numeric",weekday:"long"})+'</div>'+
+      '<div class="dnum">Day '+stats.usageDays+'</div>'+
+      '<div class="sub">点击设置专属封面 ✨</div>'+
+    '</div>'+
+    (mind?'<div class="mind-top"><div class="mt">📿 鞠式心法 · '+esc(mind.t)+'</div><div class="mm">'+esc(mind.m)+'</div></div>':"")+
+    '<div class="grid">'+
+      grid.map(g=>'<div class="cell" onclick="showModule(\''+g[0]+'\')"><span class="ic">'+g[1]+'</span><span class="lb">'+g[2]+'</span></div>').join("")+
+    '</div>'+
+    '<div class="home-quote"><div class="zh">'+esc(q.zh)+'</div><div class="en">'+esc(q.en)+'</div>'+
+      '<button onclick="switchHomeQuote()">换一句 ↻</button></div>'+
+    '<div class="stats">'+
+      '<div class="st"><b>'+stats.streak+'</b><span>连续打卡天数</span></div>'+
+      '<div class="st"><b>'+stats.todayDone+'/'+stats.todayTotal+'</b><span>今日任务进度</span></div>'+
+      '<div class="st"><b>'+stats.records+'</b><span>累计记录条数</span></div>'+
+      '<div class="st"><b>'+stats.usageDays+'</b><span>累计使用天数</span></div>'+
+    '</div>'+
+    '<div class="card" style="margin-top:14px"><h3>📥 投喂记录区</h3>'+
+      '<div class="mini-note">每个栏目底部都有「投喂记录区」：粘贴链接、上传图片/文件、记录文字即可存入。发链接给 AI（说「喂给 XX」）还能帮你抓取整理成结构化内容。</div></div>';
+}
+let homeQuoteSeed=dayIndex();
+function switchHomeQuote(){homeQuoteSeed+=1+Math.floor(Math.random()*5);const q=QUOTES[homeQuoteSeed%QUOTES.length];const z=$("#view-home").querySelector(".home-quote .zh");const e=$("#view-home").querySelector(".home-quote .en");if(z)z.textContent=q.zh;if(e)e.textContent=q.en;}
+
+function computeStats(){
+  const today=todayStr();let done=0,total=0,records=0;
+  for(const id in MODULE_DEFS){
+    MODULE_DEFS[id].panels.forEach(p=>{
+      if(p.type==="checklist"){const arr=state.modules[id].panels[p.key]||[];arr.forEach(it=>{total++;records++;if(it.doneDate===today){done++;}});}
+      else if(p.type==="table"||p.type==="cards"||p.type==="countdown"){const arr=state.modules[id].panels[p.key]||[];records+=arr.length;}
+    });
+  }
+  let streak=0;const set=new Set(state.meta.checkinDays);let d=new Date();
+  while(set.has(d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"))){streak++;d.setDate(d.getDate()-1);}
+  return {streak,done,total,records,usageDays:state.meta.usageDays.length};
+}
+
+/* ============ 模块渲染 ============ */
+function renderModule(id){
+  const def=MODULE_DEFS[id];const m=state.modules[id];const v=$("#view-module");
+  let html='<div class="back-row"><button onclick="showHome()">‹</button><div style="font-weight:600">'+def.icon+' '+esc(def.title)+'</div></div>';
+  const bstyle=(()=>{let s="";const bg=getPath("meta.images."+id);if(bg)s+="background-image:url("+bg+")";if(BANNER_FILTER[id])s+=(s?" ":"")+"filter:"+BANNER_FILTER[id];return s;})();
+  html+='<div class="banner" '+(bstyle?'style="'+bstyle+'" ':'')+'onclick="pickImage(\'meta.images.'+id+'\',()=>renderModule(\''+id+'\'))"><span class="bcap">点击设置栏目配图 ✨</span></div>';
+  html+='<div class="quote-bar">“'+esc(def.quote)+'”</div>';
+  def.panels.forEach((p,pi)=>{html+=renderPanel(id,p,pi);});
+  if(!(state.meta.videoOn&&state.meta.videoOn[id]===false))html+=renderVideoArea(id);
+  html+=renderFeedArea(id);
+  v.innerHTML=html;
+}
+function renderPanel(id,p,pi){
+  const m=state.modules[id];const arr=m.panels[p.key];
+  let h='<div class="card"><h3>'+esc(p.title||"")+(p.addLabel?'<span class="tag" onclick="openForm(\''+id+'\',\''+p.key+'\',null)">+ '+esc(p.addLabel)+'</span>':'')+'</h3>';
+  if(p.type==="checklist"){
+    if(!arr.length)h+='<div class="mini-note">暂无，点右上角添加</div>';
+    arr.forEach(it=>{
+      const txt=p.fields.map(f=>it[f.name]).filter(Boolean).join(" · ");
+      h+='<div class="item'+(it.done?" done":"")+'"><div class="cb" onclick="toggleCheck(\''+id+'\',\''+p.key+'\',\''+it.id+'\')">'+(it.done?"✓":"")+'</div>'+
+         '<div class="body">'+esc(txt)+'</div><div class="ops"><button onclick="openForm(\''+id+'\',\''+p.key+'\',\''+it.id+'\')">✎</button><button onclick="delItem(\''+id+'\',\''+p.key+'\',\''+it.id+'\')">🗑</button></div></div>';
+    });
+  }else if(p.type==="table"){
+    if(!arr.length)h+='<div class="mini-note">暂无，点右上角添加</div>';
+    h+='<table><thead><tr>'+p.columns.map(c=>'<th>'+esc(c.label)+'</th>').join("")+'<th></th></tr></thead><tbody>';
+    arr.forEach(it=>{
+      h+='<tr>'+p.columns.map(c=>{
+        let val=it[c.name];
+        if(c.type==="countdown"){val=countdownCell(it[c.dateField||c.name]);}
+        else if(c.type==="formula"){val=formulaCell(p.columns,it,c);}
+        else if(c.type==="image"){val=val?'<img src="'+val+'" style="width:46px;height:46px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="event.stopPropagation();bigImg(\''+encodeURIComponent(val)+'\')">':'<span style="color:#bbb">无</span>';}
+        else val=esc(val);
+        return '<td>'+val+'</td>';
+      }).join("")+'<td><div class="row-ops"><button onclick="openForm(\''+id+'\',\''+p.key+'\',\''+it.id+'\')">✎</button><button onclick="delItem(\''+id+'\',\''+p.key+'\',\''+it.id+'\')">🗑</button></div></td></tr>';
+    });
+    h+='</tbody></table>';
+  }else if(p.type==="countdown"){
+    if(!arr.length)h+='<div class="mini-note">暂无，点右上角添加</div>';
+    arr.forEach(it=>{const left=daysBetween(todayStr(),it.date);h+='<div class="countdown-row"><span class="nm">'+esc(it.name)+'</span><span class="dd">'+(left>=0?left:"已过期")+'<small> 天 ('+esc(it.date)+')</small></span><span class="ops"><button onclick="openForm(\''+id+'\',\''+p.key+'\',\''+it.id+'\')">✎</button><button onclick="delItem(\''+id+'\',\''+p.key+'\',\''+it.id+'\')">🗑</button></span></div>';});
+  }else if(p.type==="cards"){
+    h+='<div class="cards-scroll">';
+    arr.forEach(it=>{h+='<div class="skill-card"><div class="nm">'+esc(it.name)+'</div><div class="bar"><i style="width:'+(it.prog||0)+'%"></i></div><div class="gl">进度 '+(it.prog||0)+'% · 目标：'+esc(it.goal||"")+'</div><div class="stt">状态：'+esc(it.status||"")+'</div><div class="row-ops" style="margin-top:6px"><button onclick="openForm(\''+id+'\',\''+p.key+'\',\''+it.id+'\')">✎</button><button onclick="delItem(\''+id+'\',\''+p.key+'\',\''+it.id+'\')">🗑</button></div></div>';});
+    h+='</div>';
+  }else if(p.type==="funds"){
+    const f=m.panels[p.key]||{};
+    h+='<div class="field"><label>本月存入</label><input type="number" value="'+(f.month||0)+'" onchange="setFund(\''+id+'\',\'month\',this.value)"></div>'+
+       '<div class="field"><label>累计</label><input type="number" value="'+(f.total||0)+'" onchange="setFund(\''+id+'\',\'total\',this.value)"></div>'+
+       '<div class="field"><label>下一目标</label><input type="text" value="'+esc(f.goal||"")+'" onchange="setFund(\''+id+'\',\'goal\',this.value)"></div>';
+  }else if(p.type==="quote"){
+    h='<div class="card" style="text-align:center;background:var(--glass-solid)"><div style="font-size:18px;font-style:italic;color:var(--ink)">'+esc(p.text)+'</div></div>';
+    return h;
+  }
+  h+='</div>';
+  return h;
+}
+function countdownCell(date){if(!date)return "—";const left=daysBetween(todayStr(),date);return left>=0?(left+"天"):"已过期";}
+function formulaCell(cols,row,c){
+  if(c.name==="balance"){const b=parseFloat(row.budget)||0;const a=parseFloat(row.actual)||0;return (b-a);}
+  return "—";
+}
+function bigImg(data){const w=window.open("");if(w)w.document.write('<img src="'+decodeURIComponent(data)+'" style="width:100%">');}
+
+function toggleCheck(id,key,iid){const arr=state.modules[id].panels[key];const it=arr.find(x=>x.id===iid);if(!it)return;it.done=!it.done;it.doneDate=it.done?todayStr():null;if(it.done){const t=todayStr();if(!state.meta.checkinDays.includes(t))state.meta.checkinDays.push(t);}save();renderModule(id);}
+function delItem(id,key,iid){if(!confirm("确定删除？"))return;const arr=state.modules[id].panels[key];state.modules[id].panels[key]=arr.filter(x=>x.id!==iid);save();renderModule(id);}
+function setFund(id,field,val){const f=state.modules[id].panels["fund"];f[field]=(field==="goal"?val:(parseFloat(val)||0));save();}
+
+/* ============ 表单弹窗 ============ */
+let formCtx=null;
+function openForm(id,key,iid){
+  const p=MODULE_DEFS[id].panels.find(x=>x.key===key);const arr=state.modules[id].panels[key];
+  const item=iid?arr.find(x=>x.id===iid):null;formCtx={id,key,iid,p};
+  let html='<h3>'+(iid?"编辑":"添加")+' · '+esc(p.title||"")+'</h3>';
+  const fields=p.type==="funds"?p.fields:p.columns||p.fields;
+  (fields||[]).forEach(c=>{
+    const val=item?item[c.name]:"";
+    if(c.type==="image"){
+      html+='<div class="field"><label>'+esc(c.label)+'</label><div class="imgpick" id="imgpick" style="'+(val?('background-image:url('+val+')'):'')+'">'+(val?"点击更换":"点击上传图片 📷")+'</div></div>';
+    }else if(c.type==="select"){
+      html+='<div class="field"><label>'+esc(c.label)+'</label><select id="f_'+c.name+'">'+c.options.map(o=>'<option '+(val==o?"selected":"")+'>'+esc(o)+'</option>').join("")+'</select></div>';
+    }else if(c.type==="textarea"){
+      html+='<div class="field"><label>'+esc(c.label)+'</label><textarea id="f_'+c.name+'">'+esc(val)+'</textarea></div>';
+    }else{
+      const tp=c.type==="number"?"number":(c.type==="date"?"date":"text");
+      html+='<div class="field"><label>'+esc(c.label)+'</label><input id="f_'+c.name+'" type="'+tp+'" value="'+esc(val)+'"></div>';
+    }
+  });
+  html+='<div class="modal-ops"><button class="cancel" onclick="closeModal()">取消</button><button class="save" onclick="saveForm()">保存</button></div>';
+  $("#modalBox").innerHTML=html;$("#modalMask").classList.add("show");
+  const ip=$("#imgpick");if(ip)ip.onclick=()=>pickImage("__tmpimg",()=>{const t=getPath("__tmpimg");ip.style.backgroundImage="url("+t+")";ip.textContent="点击更换";formCtx._img=t;setPath("__tmpimg",null);});
+}
+function saveForm(){
+  const {id,key,iid,p}=formCtx;const arr=state.modules[id].panels[key];
+  const fields=p.type==="funds"?p.fields:p.columns||p.fields;const obj={};
+  fields.forEach(c=>{
+    if(c.type==="image"){obj[c.name]=formCtx._img!=null?formCtx._img:(iid?arr.find(x=>x.id===iid)[c.name]:"");}
+    else{const el=$("#f_"+c.name);obj[c.name]=el?el.value:"";}
+  });
+  if(p.type==="funds"){state.modules[id].panels[key]=obj;}
+  else if(iid){const it=arr.find(x=>x.id===iid);Object.assign(it,obj);}
+  else{obj.id=uid();if(p.type==="checklist"){obj.done=false;obj.doneDate=null;}arr.push(obj);}
+  save();closeModal();
+  if(currentView==="home")renderHome();else renderModule(id);
+}
+function closeModal(){$("#modalMask").classList.remove("show");formCtx=null;}
+
+/* ============ 各栏目投喂记录区 ============ */
+function nowStamp(){const d=new Date();const p=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+" "+p(d.getHours())+":"+p(d.getMinutes());}
+function daysSince(s){if(!s)return 99;return daysBetween(s,todayStr());}
+function typeLabel(t){return FEED_TYPES[t]||t;}
+function feedRecord(colId,type,source,summary,dataUrl){
+  state.feeds[colId]=state.feeds[colId]||[];
+  state.feeds[colId].unshift({id:uid(),time:nowStamp(),type,source:source||"",summary:summary||"",dataUrl:dataUrl||null});
+  save();tryAutoFill(colId,type,source,summary);
+}
+function colTitle(id){return id==="home"?"首页":(MODULE_DEFS[id]?MODULE_DEFS[id].title:id);}
+function feedFromInput(colId){
+  const el=$("#feedIn_"+colId);if(!el)return;const v=el.value.trim();if(!v)return;
+  const title=colTitle(colId);
+  const url=v.match(/https?:\/\/\S+/);
+  if(url){feedRecord(colId,"link",url[0],(v.replace(url[0],"").trim())||"链接待整理");}
+  else{feedRecord(colId,"text","",v);}
+  el.value="";renderModule(colId);
+  toast(url?("✅ 已成功投喂链接到【"+title+"】"):("✅ 文字记录已存入【"+title+"】"));
+}
+function feedUpload(colId,type){
+  const title=colTitle(colId);
+  if(type==="image"){const arr=state.feeds[colId]||[];const n=arr.filter(x=>x.type==="image").length;if(n>=5){toast("⚠️ 图片最多保留 5 张，请先删除旧图再上传。");return;}}
+  const inp=document.createElement("input");inp.type="file";
+  if(type==="image")inp.accept="image/*";
+  inp.onchange=()=>{const f=inp.files[0];if(!f)return;
+    if(type==="image"){compressImage(f,(data,err)=>{
+        if(err){toast(err);return;}
+        feedRecord(colId,"image",f.name,"已存档图片",data);renderModule(colId);toast("✅ 图片已上传到【"+title+"】，已存档");
+      });}
+    else{feedRecord(colId,"file",f.name,"已上传文件："+f.name);renderModule(colId);toast("✅ 文件已记录到【"+title+"】");}
+  };
+  inp.click();
+}
+function delFeedRec(colId,fid){if(!confirm("删除该条记录？"))return;state.feeds[colId]=(state.feeds[colId]||[]).filter(x=>x.id!==fid);save();renderModule(colId);}
+function renderFeedArea(colId){
+  const feeds=(state.feeds[colId]||[]).slice();
+  let h='<div class="card"><h3>📥 投喂记录区 <span class="tag">链接/图片/文件/文字</span></h3>';
+  if(feeds[0]){const d=daysSince(feeds[0].time.slice(0,10));if(d>=3)h+='<div class="quote-bar" style="border-color:var(--accent)">🌸 该栏目已 '+d+' 天没新投喂，该喂点新内容了～</div>';}
+  const counts={};feeds.forEach(f=>counts[f.type]=(counts[f.type]||0)+1);
+  Object.keys(counts).forEach(t=>{if(counts[t]>=5)h+='<div class="mini-note">「'+typeLabel(t)+'」已投喂 '+counts[t]+' 条，是否整理成一份合集/心得？📒</div>';});
+  h+='<div class="feed-input"><input id="feedIn_'+colId+'" placeholder="粘贴链接或文字，或点下方上传" /><button onclick="feedFromInput(\''+colId+'\')">投喂</button></div>';
+  h+='<div style="display:flex;gap:8px;margin-bottom:10px"><button class="add-btn" style="margin:0;flex:1" onclick="feedUpload(\''+colId+'\',\'image\')">📷 上传图片</button><button class="add-btn" style="margin:0;flex:1" onclick="feedUpload(\''+colId+'\',\'file\')">📎 上传文件</button></div>';
+  h+='<table><thead><tr><th>时间</th><th>类型</th><th>来源/标题</th><th>摘要/描述</th></tr></thead><tbody>';
+  if(!feeds.length)h+='<tr><td colspan="4" style="color:#bbb;text-align:center;padding:10px">暂无投喂记录，来喂第一条吧 🌸</td></tr>';
+  feeds.forEach(f=>{
+    let src=f.source||"—";
+    if(f.type==="link"&&/^https?:\/\//.test(f.source))src='<a href="'+esc(f.source)+'" target="_blank" style="color:var(--accent)">🔗 '+esc(f.source.length>42?f.source.slice(0,42)+"…":f.source)+'</a>';
+    else if(f.dataUrl)src='<a href="'+f.dataUrl+'" target="_blank" style="color:var(--accent)">'+esc(f.source||"附件")+'</a>';
+    else src=esc(src);
+    h+='<tr><td style="white-space:nowrap">'+esc(f.time)+'</td><td>'+typeLabel(f.type)+'</td><td>'+src+'</td><td>'+esc(f.summary||"")+' <span style="cursor:pointer;color:#bbb" onclick="delFeedRec(\''+colId+'\',\''+f.id+'\')">🗑</span></td></tr>';
+  });
+  h+='</tbody></table></div>';
+  return h;
+}
+/* 含结构化数据时，尝试自动填入对应表格（启发式，失败静默） */
+function tryAutoFill(colId,type,source,summary){
+  try{
+    const text=(source||"")+" "+(summary||"");
+    if(colId==="alert"){
+      const dm=text.match(/((?:六级|国考|期末|考研|省考|教资))[^\d]*?(\d{4})[-./](\d{1,2})(?:[-./](\d{1,2}))?/);
+      if(dm){const name=dm[1];let date=dm[2]+"-"+dm[3].padStart(2,"0")+(dm[4]?"-"+dm[4].padStart(2,"0"):"-01");
+        const arr=state.modules.alert.panels.exams;if(!arr.some(x=>x.name===name&&x.date===date)){arr.push({id:uid(),name,date,status:"未报名"});save();toast("🔔 已自动创建考试节点："+name);}}
+    }
+    if(colId==="posture"){
+      const wm=text.match(/体重[^\d]*?(\d+(?:\.\d+)?)\s*斤?/);
+      if(wm){const arr=state.modules.posture.panels.monthly;if(!arr.some(x=>x.weight===wm[1]+"斤")){arr.push({id:uid(),date:"投喂",weight:wm[1]+"斤",waist:"",thigh:"",score:""});save();toast("📏 已自动填入体重记录");}}
+    }
+    if(colId==="money"){
+      const am=text.match(/(?:¥|￥|花费|金额)?\s*(\d+(?:\.\d+)?)\s*(?:元|块)?/);
+      const catm=text.match(/(餐饮|护肤|穿搭|学习|社交|其他)/);
+      if(am){const arr=state.modules.money.panels.records;arr.push({id:uid(),date:todayStr(),item:(source||summary||"投喂").slice(0,12),amount:parseFloat(am[1]),cat:catm?catm[1]:"其他",need:"否"});save();toast("💰 已自动记入一笔账单");}}
+    if(colId==="annual"){
+      const wm=text.match(/体重[^\d]*?(\d+(?:\.\d+)?)\s*斤?/);
+      if(wm){const arr=state.modules.annual.panels.compare;const r=arr.find(x=>x.dim==="体重");if(r&&!r.start){r.start=wm[1]+"斤";save();}}
+    }
+  }catch(e){}
+}
+
+/* ============ B站视频学习区 ============ */
+function biliEmbed(url){
+  // 提取 BV 号或 av 号
+  let m=url.match(/BV[0-9A-Za-z]{10}/);
+  if(m)return "https://player.bilibili.com/player.html?bvid="+m[0]+"&page=1&high_quality=1&danmaku=0";
+  m=url.match(/av(\d+)/i);
+  if(m)return "https://player.bilibili.com/player.html?aid="+m[1]+"&page=1&high_quality=1&danmaku=0";
+  // 纯 BV 号
+  if(/^BV[0-9A-Za-z]{10}$/.test(url))return "https://player.bilibili.com/player.html?bvid="+url+"&page=1&high_quality=1&danmaku=0";
+  return null;
+}
+function addVideo(colId){
+  const el=$("#videoIn_"+colId);if(!el)return;const v=el.value.trim();if(!v)return;
+  const embed=biliEmbed(v);
+  if(!embed){toast("⚠️ 无法识别B站链接，请粘贴 BV 号或完整链接");return;}
+  state.videos[colId]=state.videos[colId]||[];
+  state.videos[colId].unshift({id:uid(),title:v,embed});
+  save();el.value="";renderModule(colId);toast("✅ 视频已添加到【"+colTitle(colId)+"】");
+}
+function delVideo(colId,fid){if(!confirm("删除该视频？"))return;state.videos[colId]=(state.videos[colId]||[]).filter(x=>x.id!==fid);save();renderModule(colId);}
+function renderVideoArea(colId){
+  const list=state.videos[colId]||[];
+  let h='<div class="card"><h3>🎬 B站视频学习 <span class="tag">'+list.length+' 个</span></h3>';
+  h+='<div class="mini-note">粘贴 B站链接或 BV号，即可在本栏目内直接观看学习。</div>';
+  h+='<div class="video-input"><input id="videoIn_'+colId+'" placeholder="粘贴B站链接 / BV号" /><button onclick="addVideo(\''+colId+'\')">添加</button></div>';
+  if(list.length){
+    h+='<div class="video-list">';
+    list.forEach(v=>{
+      h+='<div class="video-item"><div class="vhead"><span class="vtitle">▶ '+esc(v.title)+'</span><button onclick="delVideo(\''+colId+'\',\''+v.id+'\')">🗑</button></div>'+
+         '<iframe src="'+v.embed+'" scrolling="no" frameborder="no" allowfullscreen="true"></iframe></div>';
+    });
+    h+='</div>';
+  }else{
+    h+='<div class="mini-note">暂无视频，粘贴一个 B站链接试试 🌸</div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+/* ============ 视频专栏 + 视频开关 ============ */
+function showVideoHub(){
+  currentView="videos";$("#view-home").classList.remove("active");$("#view-module").classList.add("active");
+  $("#topTitle").innerHTML="🎬 视频专栏";
+  const v=$("#view-module");
+  let html='<div class="back-row"><button onclick="showHome()">‹</button><div style="font-weight:600">🎬 视频专栏</div></div>';
+  html+='<div class="quote-bar">所有栏目的 B站视频汇总，一处看全部。</div>';
+  let total=0;
+  for(const id in MODULE_DEFS){
+    const list=state.videos[id]||[];
+    if(!list.length)continue;
+    total+=list.length;
+    html+='<div class="card"><h3>'+MODULE_DEFS[id].icon+' '+esc(MODULE_DEFS[id].title)+' <span class="tag">'+list.length+' 个</span></h3>';
+    list.forEach(vv=>{html+='<div class="video-item"><div class="vhead"><span class="vtitle">▶ '+esc(vv.title)+'</span></div><iframe src="'+vv.embed+'" scrolling="no" frameborder="no" allowfullscreen="true"></iframe></div>';});
+    html+='</div>';
+  }
+  if(!total)html+='<div class="card"><h3>暂无视频</h3><div class="mini-note">在各栏目底部「🎬 B站视频学习」区添加视频后，会自动汇总到这里。</div></div>';
+  v.innerHTML=html;
+  renderDrawer();
+}
+function toggleVideo(id){
+  state.meta.videoOn=state.meta.videoOn||{};
+  if(state.meta.videoOn[id]===false){delete state.meta.videoOn[id];}
+  else{state.meta.videoOn[id]=false;}
+  save();renderDecor();toast("✅ 视频区开关已更新");
+}
+
+/* ============ 启动 ============ */
+function tick(){const d=new Date();$("#clockT").textContent=d.toTimeString().slice(0,8);$("#clockD").textContent=d.toLocaleDateString("zh-CN",{month:"long",day:"numeric",weekday:"short"});}
+function boot(){
+  tick();setInterval(tick,1000);
+  applyUserStyle();
+  const t=todayStr();if(!state.meta.usageDays.includes(t)){state.meta.usageDays.push(t);save();}
+  renderBoot();
+  renderHome();renderDrawer();
+  $("#bootMask").style.display="flex";
+}
+boot();
+</script>
+</body>
+</html>
